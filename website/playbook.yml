@@ -1,0 +1,49 @@
+---
+- name: Install Kubernetes (K8s)
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Add Kubernetes APT repository key
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+
+    - name: Add Kubernetes APT repository
+      apt_repository:
+        repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+        state: present
+        filename: kubernetes
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Install apt-transport-https, curl, and software-properties-common
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - curl
+        - software-properties-common
+
+    - name: Install kubelet, kubeadm, and kubectl
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - kubelet
+        - kubeadm
+        - kubectl
+        - kubernetes-cni
+
+    - name: Enable and start Docker and kubelet services
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      loop:
+        - docker
+        - kubelet
